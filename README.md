@@ -1,4 +1,5 @@
 # AEGIS StadiumOS
+## AI-Enabled Event Governance & Intelligent Security – Stadium Operating System
 
 > AI-Powered Smart Stadium Operations Platform
 
