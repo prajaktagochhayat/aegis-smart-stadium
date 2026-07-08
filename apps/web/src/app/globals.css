@@ -1,0 +1,178 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@media (hover: hover) and (pointer: fine) {
+  *, *::before, *::after {
+    cursor: none !important;
+  }
+}
+
+html {
+  font-size: 104%;
+  scroll-behavior: smooth;
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #090d16;
+  
+  --card-bg: rgba(255, 255, 255, 0.45);
+  --card-border: rgba(220, 38, 38, 0.08);
+  --card-shadow: 0 8px 32px 0 rgba(220, 38, 38, 0.03);
+  
+  --primary: #dc2626; /* Crimson Red */
+  --secondary: #7c3aed;
+  --accent: #fbbf24; /* Gold */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  
+  --muted-text: #4b5563;
+  --border-radius-xl: 1rem;
+  --border-radius-2xl: 1.5rem;
+}
+
+.dark {
+  --background: #03050a;
+  --foreground: #f1f5f9;
+  
+  --card-bg: rgba(6, 10, 20, 0.65);
+  --card-border: rgba(220, 38, 38, 0.12);
+  --card-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.6);
+  
+  --muted-text: #94a3b8;
+}
+
+@theme inline {
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'Space Grotesk', monospace;
+  
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-accent: var(--accent);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-muted: var(--muted-text);
+  
+  --radius-xl: var(--border-radius-xl);
+  --radius-2xl: var(--border-radius-2xl);
+}
+
+/* Smooth color transitions for theme switching */
+.theme-transitioning,
+.theme-transitioning * {
+  transition: background-color 0.4s ease, border-color 0.4s ease, color 0.4s ease, box-shadow 0.4s ease !important;
+}
+
+/* Typography Redesign: Space Grotesk + Inter pairing */
+h1, h2, h3, h4, h5, h6, .font-heading {
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.03em !important;
+}
+
+body, html, p, span, button, select, input, textarea, div, .font-body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  letter-spacing: -0.01em;
+}
+
+code, pre, .font-mono {
+  font-family: 'Space Grotesk', monospace !important;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Layered Animated Background Elements */
+.mesh-gradient-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: 
+    radial-gradient(circle at 10% 20%, rgba(220, 38, 38, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(251, 191, 36, 0.04) 0%, transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(124, 58, 237, 0.03) 0%, transparent 50%),
+    var(--background);
+  opacity: 0.85;
+  transition: background 0.5s ease;
+}
+
+.dark .mesh-gradient-bg {
+  background: 
+    radial-gradient(circle at 10% 20%, rgba(220, 38, 38, 0.08) 0%, transparent 35%),
+    radial-gradient(circle at 90% 80%, rgba(251, 191, 36, 0.06) 0%, transparent 35%),
+    radial-gradient(circle at 50% 50%, rgba(124, 58, 237, 0.04) 0%, transparent 40%),
+    var(--background);
+}
+
+/* Glassmorphism Redesign */
+.glass-panel {
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+  border-radius: var(--border-radius-xl);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.glass-panel:hover {
+  transform: translateY(-2px);
+  border-color: rgba(220, 38, 38, 0.22);
+  box-shadow: 0 12px 36px 0 rgba(220, 38, 38, 0.06);
+}
+
+.dark .glass-panel:hover {
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.7), 0 0 15px rgba(220, 38, 38, 0.08);
+}
+
+/* Custom interactive inputs styling */
+.glass-input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--card-border);
+  border-radius: 0.5rem;
+  color: var(--foreground);
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.glass-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(10, 92, 255, 0.2);
+}
+
+/* Ambient glow backgrounds */
+.ambient-glow-1 {
+  background: radial-gradient(circle at 10% 20%, rgba(10, 92, 255, 0.08) 0%, transparent 40%);
+}
+
+.ambient-glow-2 {
+  background: radial-gradient(circle at 90% 80%, rgba(124, 58, 237, 0.08) 0%, transparent 40%);
+}
+
+@keyframes float-soccer {
+  0% {
+    transform: translateY(0px) rotate(0deg) scale(1);
+  }
+  50% {
+    transform: translateY(-15px) rotate(180deg) scale(1.05);
+    filter: drop-shadow(0 20px 10px rgba(10, 92, 255, 0.15));
+  }
+  100% {
+    transform: translateY(0px) rotate(360deg) scale(1);
+  }
+}
+
+.animate-float-soccer {
+  animation: float-soccer 8s ease-in-out infinite;
+}
