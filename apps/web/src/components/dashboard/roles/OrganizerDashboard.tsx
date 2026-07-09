@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useEventStore } from '@/hooks/useEventStore';
+import React from 'react';
+import { useOrganizerDashboard } from '@/hooks/useOrganizerDashboard';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
 import { StadiumMap3D } from '../StadiumMap3D';
 import { AnalyticsDashboard } from '../AnalyticsDashboard';
@@ -20,7 +20,9 @@ import {
   TrafficCone,
   Heart,
   Video,
-  Calendar
+  Calendar,
+  RotateCw,
+  Loader2
 } from 'lucide-react';
 import { clsx } from 'clsx';
 
@@ -36,69 +38,25 @@ const twinControlPills = [
 ];
 
 export function OrganizerDashboard() {
-  const { zones, alerts, routes, parkingLots, updateZone } = useEventStore();
-  const [activeTab, setActiveTab] = useState<'telemetry' | 'analytics' | 'diagnostics'>('telemetry');
-  
-  // Digital Twin Control Panel Pill Selection
-  const [activeTwinPanel, setActiveTwinPanel] = useState('Stadium Overview');
-  const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
-
-  // Live pulsing state fluctuations for 34 metrics
-  const [fluctuator, setFluctuator] = useState(0);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setFluctuator((prev) => prev + 1);
-    }, 3000);
-    return () => clearInterval(timer);
-  }, []);
-
-  // Simulated countdown values
-  const [countdown, setCountdown] = useState({ hours: 14, mins: 42, secs: 18 });
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev.secs > 0) return { ...prev, secs: prev.secs - 1 };
-        if (prev.mins > 0) return { hours: prev.hours, mins: prev.mins - 1, secs: 59 };
-        if (prev.hours > 0) return { hours: prev.hours - 1, mins: 59, secs: 59 };
-        return { hours: 0, mins: 0, secs: 0 };
-      });
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  // Map individual seating zones
-  const zonesMap = zones.reduce((acc, z) => {
-    acc[z.id] = z;
-    return acc;
-  }, {} as Record<string, typeof zones[0]>);
-
-  const getZonePercent = (id: string, defVal: number, defCap: number) => {
-    const z = zonesMap[id];
-    if (!z) return Math.floor((defVal / defCap) * 100);
-    return Math.floor((z.currentOccupancy / z.capacity) * 100);
-  };
-
-  // Calculations for Left Sidebar
-  const totalOccupancy = zones.reduce((sum, z) => sum + z.currentOccupancy, 0);
-  const totalCapacity = zones.reduce((sum, z) => sum + z.capacity, 0);
-  const occupancyPercent = totalCapacity > 0 ? Math.floor((totalOccupancy / totalCapacity) * 100) : 0;
-  
-  const handleSelectZone = (zoneId: string) => {
-    setSelectedZoneId(zoneId);
-    const zone = zones.find((z) => z.id === zoneId);
-    if (zone) {
-      updateZone(zoneId, {
-        currentOccupancy: Math.min(zone.capacity, zone.currentOccupancy + 150),
-      });
-    }
-  };
-
-  // 34 Analytics Cards calculations with simulated fluctuations
-  const mockPulsedPercent = (base: number, freq: number) => {
-    const sinOffset = Math.sin(fluctuator * freq) * 3;
-    return Math.max(1, Math.min(99, Math.floor(base + sinOffset)));
-  };
+  const {
+    activeTab,
+    setActiveTab,
+    activeTwinPanel,
+    setActiveTwinPanel,
+    selectedZoneId,
+    countdown,
+    alerts,
+    routes,
+    parkingLots,
+    getZonePercent,
+    totalOccupancy,
+    occupancyPercent,
+    handleSelectZone,
+    mockPulsedPercent,
+    aiInsights,
+    isGenerating,
+    generateAiInsights,
+  } = useOrganizerDashboard();
 
 
 
@@ -423,14 +381,33 @@ export function OrganizerDashboard() {
 
             {/* AI co-pilot insights */}
             <Card className="glass-panel border-card-border/60 bg-gradient-to-tr from-primary/5 to-rose-500/5" animate={true}>
-              <CardHeader>
-                <CardTitle className="text-xs uppercase tracking-widest text-primary font-heading font-extrabold flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4" /> AI Operations Recommendations
-                </CardTitle>
+              <CardHeader className="flex flex-row justify-between items-center border-b border-card-border/20 pb-3">
+                <div className="flex flex-col gap-0.5">
+                  <CardTitle className="text-xs uppercase tracking-widest text-primary font-heading font-extrabold flex items-center gap-1.5">
+                    <Sparkles className="w-4 h-4 text-primary animate-pulse" /> AI Dispatch Decisions
+                  </CardTitle>
+                  <CardDescription className="text-[10px] text-muted">Real-time live telemetry reasoning</CardDescription>
+                </div>
+                <button
+                  onClick={generateAiInsights}
+                  disabled={isGenerating}
+                  className="p-1.5 bg-foreground/[0.03] border border-card-border/30 rounded-lg hover:bg-foreground/5 cursor-pointer disabled:opacity-50"
+                  title="Regenerate GenAI Decisions"
+                >
+                  <RotateCw className={clsx('w-3.5 h-3.5 text-muted', isGenerating && 'animate-spin')} />
+                </button>
               </CardHeader>
-              <CardContent className="flex flex-col gap-3 text-xs font-semibold text-muted leading-relaxed">
-                <p>* Queue at South food courts expected to rise in 10 minutes. Advise redirection toward West stands concourses.</p>
-                <p>* Match shuttle bus fleet transit ETA experiencing 8-minute congestion delays on Route 3. Dispatch backup shuttles.</p>
+              <CardContent className="flex flex-col gap-3 text-xs font-semibold text-foreground/80 leading-relaxed pt-4">
+                {isGenerating && !aiInsights ? (
+                  <div className="flex gap-2 items-center text-muted py-2">
+                    <Loader2 className="w-4 h-4 animate-spin text-primary animate-pulse" />
+                    <span>AI is reasoning over live state...</span>
+                  </div>
+                ) : (
+                  <div className="whitespace-pre-line text-muted">
+                    {aiInsights || "* No telemetry recommendations generated. Refresh to trigger."}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

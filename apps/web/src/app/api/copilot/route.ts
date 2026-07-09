@@ -36,7 +36,7 @@ Instructions:
     // 1. Anthropic Claude API Route (if Anthropic key is present)
     if (anthropicKey) {
       // Map OpenAI messages role to Anthropic role
-      const anthropicMessages = messages.map((m: any) => ({
+      const anthropicMessages = messages.map((m: { role: string; content: string }) => ({
         role: m.role === 'assistant' ? 'assistant' : 'user',
         content: m.content,
       }));
@@ -63,9 +63,8 @@ Instructions:
       }
 
       // Transform Anthropic SSE format into OpenAI choices/delta format for client parsing
-      const { ReadableStream, TransformStream } = require('node:stream/web');
-      const transformStream = new TransformStream({
-        transform(chunk: any, controller: any) {
+      const transformStream = new TransformStream<Uint8Array, Uint8Array>({
+        transform(chunk, controller) {
           const text = new TextDecoder().decode(chunk);
           const lines = text.split('\n');
           for (const line of lines) {
@@ -140,7 +139,8 @@ Instructions:
     }
 
     return NextResponse.json({ error: 'Unsupported state' }, { status: 500 });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Unknown server error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

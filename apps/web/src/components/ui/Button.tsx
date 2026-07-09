@@ -87,7 +87,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         transition={{ type: 'spring', stiffness: 450, damping: 25 }}
         disabled={disabled || isLoading}
         className={twMerge(clsx(baseStyles, variants[variant], sizes[size], className))}
-        {...(props as Record<string, unknown>)}
+        {...(props as React.ComponentPropsWithoutRef<typeof motion.button>)}
       >
         {isLoading && <Loader2 className="w-4 h-4 animate-spin shrink-0" data-testid="loader" />}
         {!isLoading && leftIcon && <span className="shrink-0">{leftIcon}</span>}
