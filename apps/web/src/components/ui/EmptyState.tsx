@@ -3,7 +3,6 @@
 import React from 'react';
 import { Button } from './Button';
 import { HelpCircle } from 'lucide-react';
-import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 export interface EmptyStateProps {

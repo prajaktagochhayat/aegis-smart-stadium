@@ -5,8 +5,7 @@ import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { useEventStore } from '@/hooks/useEventStore';
-import { useTheme } from '@/components/ThemeProvider';
-import { Play, ShieldAlert, Cpu, Activity, Clock, Globe, ArrowRight, ShieldCheck, Sparkles, Terminal, Shield, Wifi, HeartPulse, RefreshCw } from 'lucide-react';
+import { ShieldAlert, Cpu, Activity, Clock, ArrowRight, ShieldCheck, Sparkles, Terminal, Shield, Wifi, HeartPulse, RefreshCw } from 'lucide-react';
 
 interface WelcomeHubProps {
   onEnterWorkspace: () => void;
@@ -14,7 +13,6 @@ interface WelcomeHubProps {
 
 export function WelcomeHub({ onEnterWorkspace }: WelcomeHubProps) {
   const { alerts } = useEventStore();
-  const { isDark } = useTheme();
 
   // Mock Countdown Timer for kickoff
   const [timeLeft, setTimeLeft] = useState('02:43:37');

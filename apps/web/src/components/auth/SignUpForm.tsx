@@ -48,6 +48,7 @@ export function SignUpForm({ onSuccess, onNavigateToSignIn }: SignUpFormProps) {
     handleSubmit,
     formState: { errors },
   } = useForm<SignUpValues>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(signUpSchema as any),
     defaultValues: {
       displayName: '',

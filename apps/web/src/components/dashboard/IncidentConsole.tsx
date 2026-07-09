@@ -3,19 +3,17 @@
 import React, { useState } from 'react';
 import { useEventStore } from '@/hooks/useEventStore';
 import { useAiCoPilot } from '@/hooks/useAiCoPilot';
-import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { EmergencyIncident, IncidentCategory, IncidentStatus } from '@aegis/types';
-import { ShieldAlert, AlertCircle, Heart, Zap, Sparkles, Send, MapPin, Users, CheckCircle, RefreshCcw } from 'lucide-react';
+import { EmergencyIncident, IncidentCategory } from '@aegis/types';
+import { ShieldAlert, AlertCircle, Heart, Zap, Sparkles, MapPin, Users, CheckCircle, RefreshCcw } from 'lucide-react';
 import { clsx } from 'clsx';
 
 export function IncidentConsole() {
   const { incidents, updateIncidentStatus, reportIncident } = useEventStore();
-  const { user } = useAuth();
   const { addToast } = useToast();
-  const { isStreaming, streamedContent, getIncidentRecommendationStream } = useAiCoPilot();
+  const { isStreaming, getIncidentRecommendationStream } = useAiCoPilot();
 
   const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
   const [filterCategory, setFilterCategory] = useState<string>('ALL');
@@ -106,7 +104,7 @@ export function IncidentConsole() {
     const randomCat = categories[Math.floor(Math.random() * categories.length)];
     const id = reportIncident({
       category: randomCat,
-      severity: Math.floor(Math.random() * 4) + 2 as any,
+      severity: (Math.floor(Math.random() * 4) + 2) as (1 | 2 | 3 | 4 | 5 | 6),
       status: 'Reported',
       location: `Gate ${Math.floor(Math.random() * 8) + 1}, Sector Section ${Math.floor(Math.random() * 20) + 100}`,
       description: `Reported anomaly: ${randomCat} event requiring operations supervisor check.`,

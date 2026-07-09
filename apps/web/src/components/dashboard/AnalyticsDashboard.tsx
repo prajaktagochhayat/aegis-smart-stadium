@@ -3,7 +3,7 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from 'recharts';
-import { Activity, Leaf, ShieldAlert, Cpu } from 'lucide-react';
+import { Activity, Leaf } from 'lucide-react';
 
 // Historical match day data: Visitor Throughput (Pre-match, Kickoff, Halftime, Fulltime)
 const visitorData = [

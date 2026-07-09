@@ -130,7 +130,7 @@ describe('AI Co-Pilot & Incident System Tests', () => {
 
 // Reusable testing helper for Client hooks
 function renderHookHelper() {
-  let result: any = null;
+  let result: ReturnType<typeof useAiCoPilot> | null = null;
   function TestComponent() {
     result = useAiCoPilot();
     return null;

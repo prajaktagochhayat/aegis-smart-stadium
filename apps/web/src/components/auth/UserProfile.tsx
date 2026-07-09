@@ -7,7 +7,7 @@ import { useTheme } from '@/components/ThemeProvider';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { User, UserSession } from '@aegis/types';
+import { UserSession } from '@aegis/types';
 import { User as UserIcon, LogOut, Laptop, Smartphone, Globe, Shield, Trash2 } from 'lucide-react';
 
 export function UserProfile() {
@@ -26,7 +26,7 @@ export function UserProfile() {
       userId: user?.id || 'usr-123',
       deviceInfo: 'Chrome 125, macOS Sonoma',
       ipAddress: '192.168.1.45',
-      lastLogin: new Date().toISOString(),
+      lastLogin: '2026-07-09T15:00:00.000Z',
       location: 'Stadium Operations Center (Local IP)',
       isTrusted: true,
     },
@@ -35,7 +35,7 @@ export function UserProfile() {
       userId: user?.id || 'usr-123',
       deviceInfo: 'Safari iOS 17.5, iPhone 15 Pro',
       ipAddress: '10.0.82.11',
-      lastLogin: new Date(Date.now() - 3600000).toISOString(),
+      lastLogin: '2026-07-09T14:00:00.000Z',
       location: 'North Gate Access Point',
       isTrusted: false,
     },

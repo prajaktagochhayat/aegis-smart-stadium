@@ -17,7 +17,7 @@ import { AiCoPilotPanel } from '@/components/dashboard/AiCoPilotPanel';
 import { Dialog } from '@/components/ui/Dialog';
 import { UserProfile } from '@/components/auth/UserProfile';
 import { WelcomeHub } from '@/components/dashboard/WelcomeHub';
-import { Loader2, ShieldCheck } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 export default function HomePage() {
   const { user, isLoading, initialize } = useAuth();

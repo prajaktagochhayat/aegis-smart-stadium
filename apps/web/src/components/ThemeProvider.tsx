@@ -19,6 +19,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Load preference from local storage or default to light
     const savedTheme = localStorage.getItem('aegis-theme') as Theme | null;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setThemeState(savedTheme || 'light');
   }, []);
 

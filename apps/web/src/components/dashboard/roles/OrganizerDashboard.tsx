@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useEventStore } from '@/hooks/useEventStore';
-import { StatCard } from '@/components/ui/StatCard';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
 import { StadiumMap3D } from '../StadiumMap3D';
 import { AnalyticsDashboard } from '../AnalyticsDashboard';
@@ -10,31 +9,18 @@ import { SystemHealth } from '../SystemHealth';
 import {
   Users,
   AlertTriangle,
-  Clock,
-  Route,
   LayoutDashboard,
   BarChart3,
   ShieldAlert,
   ShieldCheck,
   Zap,
-  Droplet,
-  Wifi,
   Smartphone,
-  Eye,
-  Megaphone,
-  Wind,
   Thermometer,
-  Compass,
-  MapPin,
   Sparkles,
   TrafficCone,
   Heart,
   Video,
-  Volume2,
-  Calendar,
-  Activity,
-  Award,
-  HelpCircle
+  Calendar
 } from 'lucide-react';
 import { clsx } from 'clsx';
 
@@ -87,16 +73,6 @@ export function OrganizerDashboard() {
     return acc;
   }, {} as Record<string, typeof zones[0]>);
 
-  const getZoneOccupancy = (id: string, defVal: number) => {
-    const z = zonesMap[id];
-    return z ? z.currentOccupancy : defVal;
-  };
-
-  const getZoneCapacity = (id: string, defCap: number) => {
-    const z = zonesMap[id];
-    return z ? z.capacity : defCap;
-  };
-
   const getZonePercent = (id: string, defVal: number, defCap: number) => {
     const z = zonesMap[id];
     if (!z) return Math.floor((defVal / defCap) * 100);
@@ -124,10 +100,7 @@ export function OrganizerDashboard() {
     return Math.max(1, Math.min(99, Math.floor(base + sinOffset)));
   };
 
-  const mockPulsedCount = (base: number, freq: number, amplitude: number = 5) => {
-    const sinOffset = Math.sin(fluctuator * freq) * amplitude;
-    return Math.max(0, Math.floor(base + sinOffset));
-  };
+
 
   return (
     <div className="flex flex-col gap-6 w-full p-4 font-sans select-none">

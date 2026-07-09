@@ -1,5 +1,5 @@
 import React from 'react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { render, act, waitFor } from '@testing-library/react';
 import { useI18n } from '../hooks/useI18n';
 import { useAuth } from '../hooks/useAuth';
@@ -96,7 +96,7 @@ describe('i18n Translation & Internationalization Tests', () => {
     });
 
     // Render AiCoPilot hook
-    let aiResult: any = null;
+    let aiResult: ReturnType<typeof useAiCoPilot> | null = null;
     function AiComponent() {
       aiResult = useAiCoPilot();
       return null;
@@ -105,7 +105,7 @@ describe('i18n Translation & Internationalization Tests', () => {
 
     let finalChunk = '';
     act(() => {
-      (aiResult as any).getIncidentRecommendationStream(
+      aiResult!.getIncidentRecommendationStream(
         {
           id: 'inc-1',
           category: 'Medical',
@@ -133,7 +133,7 @@ describe('i18n Translation & Internationalization Tests', () => {
 
 // Reusable testing helper for Client hooks
 function renderHookHelper() {
-  let result: any = null;
+  let result: ReturnType<typeof useI18n> | null = null;
   function TestComponent() {
     result = useI18n();
     return null;

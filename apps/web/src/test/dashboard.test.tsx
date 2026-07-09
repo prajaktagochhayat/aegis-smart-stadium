@@ -12,7 +12,7 @@ vi.mock('@/components/ThemeProvider', () => ({
     setTheme: vi.fn(),
     isDark: false,
   }),
-  ThemeProvider: ({ children }: any) => <>{children}</>,
+  ThemeProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
 // Mock ResizeObserver for jsdom WebGL canvas measurements

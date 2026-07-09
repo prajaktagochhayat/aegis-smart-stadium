@@ -2,7 +2,7 @@
 
 import { create } from 'zustand';
 import { User, UserRole } from '@aegis/types';
-import { supabase, mockAuth, useMockAuth } from '@/lib/supabase';
+import { supabase, mockAuth, shouldUseMockAuth } from '@/lib/supabase';
 
 interface AuthStore {
   user: User | null;
@@ -31,7 +31,7 @@ export const useAuth = create<AuthStore>((set, get) => ({
   initialize: () => {
     set({ isLoading: true });
 
-    if (useMockAuth()) {
+    if (shouldUseMockAuth()) {
       // Subscribe to MockAuth updates
       const unsubscribe = mockAuth.subscribe((mockUser) => {
         if (mockUser) {
@@ -43,11 +43,51 @@ export const useAuth = create<AuthStore>((set, get) => ({
       });
       return unsubscribe;
     } else {
-      // Subscribe to Supabase Auth updates
+      // Add a safety timeout to ensure the app doesn't hang on loading screen
+      let isResolved = false;
+      const timeoutId = setTimeout(() => {
+        if (!isResolved) {
+          console.warn('[AEGIS Auth] Session resolution timed out. Falling back to guest mode.');
+          set({ user: null, isLoading: false });
+        }
+      }, 2500);
+
+      // Fetch initial session
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (isResolved) return;
+        isResolved = true;
+        clearTimeout(timeoutId);
+
+        if (session?.user) {
+          const mappedUser: User = {
+            id: session.user.id,
+            email: session.user.email || '',
+            displayName: session.user.user_metadata.display_name || session.user.email?.split('@')[0] || 'User',
+            phoneNumber: session.user.user_metadata.phone_number || '',
+            role: (session.user.user_metadata.role as UserRole) || 'Fan',
+            preferredLanguage: session.user.user_metadata.preferred_language || 'English',
+            theme: session.user.user_metadata.theme || 'system',
+            timezone: session.user.user_metadata.timezone || 'UTC',
+            createdAt: session.user.created_at,
+            updatedAt: session.user.updated_at || session.user.created_at,
+          };
+          document.cookie = `aegis-user=${encodeURIComponent(JSON.stringify(mappedUser))}; path=/; max-age=86400; SameSite=Strict`;
+          set({ user: mappedUser, isLoading: false });
+        } else {
+          set({ user: null, isLoading: false });
+        }
+      }).catch((err) => {
+        if (isResolved) return;
+        isResolved = true;
+        clearTimeout(timeoutId);
+        console.error('[AEGIS Auth] Failed to resolve initial session:', err);
+        set({ user: null, isLoading: false, error: err instanceof Error ? err.message : String(err) });
+      });
+
+      // Subscribe to subsequent Supabase Auth state changes
       const { data: { subscription } } = supabase.auth.onAuthStateChange(
         async (event, session) => {
           if (session?.user) {
-            // Map Supabase user metadata to User interface
             const mappedUser: User = {
               id: session.user.id,
               email: session.user.email || '',
@@ -71,6 +111,7 @@ export const useAuth = create<AuthStore>((set, get) => ({
 
       return () => {
         subscription.unsubscribe();
+        clearTimeout(timeoutId);
       };
     }
   },
@@ -78,7 +119,7 @@ export const useAuth = create<AuthStore>((set, get) => ({
   signIn: async (email, password, role = 'Fan') => {
     set({ isLoading: true, error: null });
     try {
-      if (useMockAuth()) {
+      if (shouldUseMockAuth()) {
         const { user, error } = await mockAuth.signIn(email, role);
         if (error) throw error;
         if (user) {
@@ -87,15 +128,15 @@ export const useAuth = create<AuthStore>((set, get) => ({
         set({ user, isLoading: false });
         return true;
       } else {
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const { error } = await supabase.auth.signInWithPassword({
           email,
           password: password || '',
         });
         if (error) throw error;
         return true;
       }
-    } catch (err: any) {
-      set({ error: err.message || 'Login failed', isLoading: false });
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : String(err), isLoading: false });
       return false;
     }
   },
@@ -103,7 +144,7 @@ export const useAuth = create<AuthStore>((set, get) => ({
   signUp: async (email, password, role = 'Fan', displayName, phoneNumber) => {
     set({ isLoading: true, error: null });
     try {
-      if (useMockAuth()) {
+      if (shouldUseMockAuth()) {
         const { user, error } = await mockAuth.signUp(email, role, displayName, phoneNumber);
         if (error) throw error;
         if (user) {
@@ -112,7 +153,7 @@ export const useAuth = create<AuthStore>((set, get) => ({
         set({ user, isLoading: false });
         return true;
       } else {
-        const { data, error } = await supabase.auth.signUp({
+        const { error } = await supabase.auth.signUp({
           email,
           password: password || '',
           options: {
@@ -128,8 +169,8 @@ export const useAuth = create<AuthStore>((set, get) => ({
         if (error) throw error;
         return true;
       }
-    } catch (err: any) {
-      set({ error: err.message || 'Registration failed', isLoading: false });
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : String(err), isLoading: false });
       return false;
     }
   },
@@ -137,13 +178,13 @@ export const useAuth = create<AuthStore>((set, get) => ({
   sendOtp: async (email, phoneNumber) => {
     set({ isLoading: true, error: null });
     try {
-      if (useMockAuth()) {
-        const { success, otp, error } = await mockAuth.sendOtp(email, phoneNumber);
+      if (shouldUseMockAuth()) {
+        const { otp, error } = await mockAuth.sendOtp(email, phoneNumber);
         if (error) throw error;
         set({ isLoading: false });
         return otp || 'SUCCESS';
       } else {
-        // Live Supabase OTP dispatch via magic link or SMS
+        // Live Supabase OTP dispatch
         const { error } = await supabase.auth.signInWithOtp({
           email,
           options: {
@@ -154,8 +195,8 @@ export const useAuth = create<AuthStore>((set, get) => ({
         set({ isLoading: false });
         return 'LIVE_OTP_SENT';
       }
-    } catch (err: any) {
-      set({ error: err.message || 'Failed to dispatch verification code', isLoading: false });
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : String(err), isLoading: false });
       return null;
     }
   },
@@ -163,7 +204,7 @@ export const useAuth = create<AuthStore>((set, get) => ({
   verifyOtp: async (email, phoneNumber, otp) => {
     set({ isLoading: true, error: null });
     try {
-      if (useMockAuth()) {
+      if (shouldUseMockAuth()) {
         const { user, error } = await mockAuth.verifyOtp(email, phoneNumber, otp);
         if (error) throw error;
         if (user) {
@@ -172,7 +213,7 @@ export const useAuth = create<AuthStore>((set, get) => ({
         set({ user, isLoading: false });
         return true;
       } else {
-        const { data, error } = await supabase.auth.verifyOtp({
+        const { error } = await supabase.auth.verifyOtp({
           email,
           token: otp,
           type: 'email',
@@ -181,8 +222,8 @@ export const useAuth = create<AuthStore>((set, get) => ({
         set({ isLoading: false });
         return true;
       }
-    } catch (err: any) {
-      set({ error: err.message || 'Verification code check failed', isLoading: false });
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : String(err), isLoading: false });
       return false;
     }
   },
@@ -190,7 +231,7 @@ export const useAuth = create<AuthStore>((set, get) => ({
   signOut: async () => {
     set({ isLoading: true, error: null });
     document.cookie = 'aegis-user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-    if (useMockAuth()) {
+    if (shouldUseMockAuth()) {
       await mockAuth.signOut();
     } else {
       await supabase.auth.signOut();
@@ -206,7 +247,7 @@ export const useAuth = create<AuthStore>((set, get) => ({
     try {
       const updatedUser = { ...user, ...profileUpdates, updatedAt: new Date().toISOString() };
       
-      if (useMockAuth()) {
+      if (shouldUseMockAuth()) {
         if (typeof window !== 'undefined') {
           localStorage.setItem('aegis-mock-user', JSON.stringify(updatedUser));
           document.cookie = `aegis-user=${encodeURIComponent(JSON.stringify(updatedUser))}; path=/; max-age=86400; SameSite=Strict`;
@@ -227,8 +268,8 @@ export const useAuth = create<AuthStore>((set, get) => ({
         set({ user: updatedUser, isLoading: false });
         return true;
       }
-    } catch (err: any) {
-      set({ error: err.message || 'Profile update failed', isLoading: false });
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : String(err), isLoading: false });
       return false;
     }
   },

@@ -3,8 +3,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Sheet } from '@/components/ui/Sheet';
 import { Button } from '@/components/ui/Button';
-import { useAiCoPilot, ChatMessage } from '@/hooks/useAiCoPilot';
-import { Sparkles, Send, Bot, User as UserIcon, RefreshCcw, Radio } from 'lucide-react';
+import { useAiCoPilot } from '@/hooks/useAiCoPilot';
+import { Sparkles, Send, Radio } from 'lucide-react';
 import { clsx } from 'clsx';
 import { motion } from 'framer-motion';
 

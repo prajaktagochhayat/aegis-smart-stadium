@@ -8,10 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { UserRole } from '@aegis/types';
 import { motion } from 'framer-motion';
 import {
-  ShieldCheck,
   LogOut,
-  RefreshCcw,
-  User as UserIcon,
   Sun,
   Moon,
   LayoutDashboard,

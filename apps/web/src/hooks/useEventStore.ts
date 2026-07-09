@@ -8,6 +8,7 @@ import {
   VolunteerTask,
   TransportRoute,
   ParkingLotStatus,
+  CrowdDensityLevel,
 } from '@aegis/types';
 import { generateMockId } from '@aegis/utils';
 
@@ -369,7 +370,7 @@ export const useEventStore = create<EventStore>((set, get) => ({
         const deltaEta = Math.floor((Math.random() - 0.5) * 3);
         const nextEta = Math.max(1, r.etaMinutes + deltaEta);
         
-        let crowdLvl: CrowdRouteDensity = 'LOW';
+        let crowdLvl: CrowdDensityLevel = 'LOW';
         if (nextEta > 10) crowdLvl = 'CRITICAL';
         else if (nextEta > 6) crowdLvl = 'HIGH';
         else if (nextEta > 3) crowdLvl = 'MEDIUM';
@@ -377,8 +378,8 @@ export const useEventStore = create<EventStore>((set, get) => ({
         return {
           ...r,
           etaMinutes: nextEta,
-          crowdLevel: crowdLvl as any,
-          status: (nextEta > 10 ? 'delayed' : 'normal') as any,
+          crowdLevel: crowdLvl,
+          status: (nextEta > 10 ? 'delayed' : 'normal') as 'normal' | 'delayed' | 'suspended',
         };
       });
 
@@ -423,4 +424,4 @@ export const useEventStore = create<EventStore>((set, get) => ({
   },
 }));
 
-type CrowdRouteDensity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+

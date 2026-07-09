@@ -20,9 +20,9 @@ export function CustomCursor() {
   const cursorYSpring = useSpring(cursorY, springConfig);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true);
     
-    // Check if device supports hover/touch
     const touchCheck = window.matchMedia('(hover: none)').matches || 'ontouchstart' in window;
     setIsTouchDevice(touchCheck);
     if (touchCheck) return;

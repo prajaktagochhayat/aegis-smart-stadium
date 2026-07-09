@@ -29,7 +29,7 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35, ease: 'easeOut' }}
           className={classes}
-          {...(props as any)}
+          {...(props as Record<string, unknown>)}
         >
           {children}
         </motion.div>

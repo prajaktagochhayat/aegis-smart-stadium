@@ -4,7 +4,7 @@ import React from 'react';
 import { useEventStore } from '@/hooks/useEventStore';
 import { StatCard } from '@/components/ui/StatCard';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/Card';
-import { Sparkles, Route, Building, ShieldCheck } from 'lucide-react';
+import { Route, Building, ShieldCheck } from 'lucide-react';
 
 export function AccessibilityDashboard() {
   const { parkingLots, tasks } = useEventStore();

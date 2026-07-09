@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import { useEventStore } from '@/hooks/useEventStore';
 import { useTheme } from '@/components/ThemeProvider';
 import { StadiumZone } from '@aegis/types';
-import { ShieldCheck, Sparkles, AlertTriangle, HelpCircle } from 'lucide-react';
+
 
 interface CurvedStandProps {
   zone: StadiumZone;
@@ -299,7 +299,7 @@ function SpectatorFlow({ isDark }: { isDark: boolean }) {
   });
 
   return (
-    <instancedMesh ref={meshRef} args={[null as any, null as any, count]} castShadow>
+    <instancedMesh ref={meshRef} args={[null as unknown as THREE.BufferGeometry, null as unknown as THREE.Material, count]} castShadow>
       <sphereGeometry args={[0.07, 6, 6]} />
       <meshBasicMaterial color={isDark ? '#fbbf24' : '#ef4444'} transparent opacity={0.65} />
     </instancedMesh>

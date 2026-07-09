@@ -6,11 +6,16 @@ import { User, UserRole } from '@aegis/types';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mock-stadium-supabase.supabase.co';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'mock-key';
 
-// Check if we are running in a mock environment (e.g. mock URL is active or it's running in vitest)
-const isMockEnv = supabaseUrl.includes('mock-stadium-supabase') || typeof window === 'undefined' || process.env.NODE_ENV === 'test';
+// Check if we are running in a mock environment (strictly gated in production)
+const isMockEnv = 
+  typeof window === 'undefined' || 
+  process.env.NODE_ENV === 'test' || 
+  process.env.NEXT_PUBLIC_DEMO_MODE === 'true' || 
+  (supabaseUrl.includes('mock-stadium-supabase') && process.env.NODE_ENV !== 'production');
 
 // Standard Supabase client instance
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
 
 // --- Offline/Mock Auth Store for Local Development & Testing ---
 class MockAuthService {
@@ -221,6 +226,6 @@ class MockAuthService {
 export const mockAuth = new MockAuthService();
 
 // Helper to determine if we should fall back to mock auth
-export function useMockAuth() {
+export function shouldUseMockAuth() {
   return isMockEnv;
 }
