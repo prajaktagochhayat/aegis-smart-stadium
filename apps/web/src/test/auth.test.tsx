@@ -155,15 +155,15 @@ describe('Authentication & Authorization Tests', () => {
 
   // --- RBAC Middleware ---
   describe('Router Middleware Role-Based Redirections', () => {
-    it('should redirect unauthenticated users visiting /organizer to /login', () => {
+    it('should redirect unauthenticated users visiting /organizer to /login', async () => {
       const mockRequest = new NextRequest('http://localhost/organizer');
-      const response = middleware(mockRequest);
+      const response = await middleware(mockRequest);
       
       expect(response).toBeDefined();
       expect(response?.headers.get('location')).toContain('/login');
     });
 
-    it('should allow Organizer role to access /organizer', () => {
+    it('should allow Organizer role to access /organizer', async () => {
       const userObj = { email: 'test@stadium.org', role: 'Organizer' };
       const mockRequest = new NextRequest('http://localhost/organizer', {
         headers: {
@@ -171,12 +171,12 @@ describe('Authentication & Authorization Tests', () => {
         },
       });
       
-      const response = middleware(mockRequest);
+      const response = await middleware(mockRequest);
       // If allowed, Next.js middleware returns a NextFetchEvent chain / status 200 without redirect headers
       expect(response?.headers.get('location')).toBeNull();
     });
 
-    it('should redirect Fan role trying to access /organizer to /unauthorized', () => {
+    it('should redirect Fan role trying to access /organizer to /unauthorized', async () => {
       const userObj = { email: 'fan@stadium.org', role: 'Fan' };
       const mockRequest = new NextRequest('http://localhost/organizer', {
         headers: {
@@ -184,7 +184,43 @@ describe('Authentication & Authorization Tests', () => {
         },
       });
       
-      const response = middleware(mockRequest);
+      const response = await middleware(mockRequest);
+      expect(response?.headers.get('location')).toContain('/unauthorized');
+    });
+
+    it('should redirect Volunteer role trying to access /admin to /unauthorized', async () => {
+      const userObj = { email: 'volunteer@stadium.org', role: 'Volunteer' };
+      const mockRequest = new NextRequest('http://localhost/admin', {
+        headers: {
+          cookie: `aegis-user=${encodeURIComponent(JSON.stringify(userObj))}`,
+        },
+      });
+      
+      const response = await middleware(mockRequest);
+      expect(response?.headers.get('location')).toContain('/unauthorized');
+    });
+
+    it('should redirect Security role trying to access /medical to /unauthorized', async () => {
+      const userObj = { email: 'security@stadium.org', role: 'Security' };
+      const mockRequest = new NextRequest('http://localhost/medical', {
+        headers: {
+          cookie: `aegis-user=${encodeURIComponent(JSON.stringify(userObj))}`,
+        },
+      });
+      
+      const response = await middleware(mockRequest);
+      expect(response?.headers.get('location')).toContain('/unauthorized');
+    });
+
+    it('should redirect Medical role trying to access /security to /unauthorized', async () => {
+      const userObj = { email: 'medical@stadium.org', role: 'Medical' };
+      const mockRequest = new NextRequest('http://localhost/security', {
+        headers: {
+          cookie: `aegis-user=${encodeURIComponent(JSON.stringify(userObj))}`,
+        },
+      });
+      
+      const response = await middleware(mockRequest);
       expect(response?.headers.get('location')).toContain('/unauthorized');
     });
   });
