@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { EmergencyIncident } from '@aegis/types';
 import { useAuth } from './useAuth';
+import { useEventStore } from './useEventStore';
 
 export interface ChatMessage {
   id: string;
@@ -183,43 +184,172 @@ CONFIDENCE: 75% (Medium)`;
     setIsStreaming(true);
     setStreamedContent('');
 
-    // Generate responsive response context
-    const isIncidentQuery = text.toLowerCase().includes('incident') || text.toLowerCase().includes('emergency') || text.toLowerCase().includes('medical');
-    const isCrowdQuery = text.toLowerCase().includes('density') || text.toLowerCase().includes('crowd') || text.toLowerCase().includes('concourse');
-    
-    let responseText = "I'm analyzing the telemetry feed. Please clarify which gate or seating sector you'd like me to query.";
-    if (isIncidentQuery) {
-      responseText = "[AI SECURE MONITOR] I am analyzing active emergency incident logs. For Medical dispatches, I recommend routing responders through vip corridors. For security dispatches, check Section 104 camera feeds.";
-    } else if (isCrowdQuery) {
-      responseText = "[AI CROWD ASSISTANT] Concourse density is currently at 88% near South concession stalls. Recommend triggering overflow signage immediately to divert traffic toward East Stands.";
-    }
+    try {
+      const response = await fetch('/api/copilot', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: text }],
+          telemetry: {
+            zones: useEventStore.getState().zones,
+            alerts: useEventStore.getState().alerts,
+            incidents: useEventStore.getState().incidents,
+            tasks: useEventStore.getState().tasks,
+            routes: useEventStore.getState().routes,
+          },
+        }),
+      });
 
-    // Stream response
-    streamText(
-      responseText,
-      (chunk) => {
-        setStreamedContent(chunk);
-      },
-      () => {
+      if (!response.ok) {
+        throw new Error('API request failed');
+      }
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let assistantText = '';
+
+      if (reader) {
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n');
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const dataStr = line.slice(6).trim();
+              if (dataStr === '[DONE]') continue;
+              try {
+                const data = JSON.parse(dataStr);
+                const content = data.choices?.[0]?.delta?.content || data.delta?.text || '';
+                if (content) {
+                  assistantText += content;
+                  setStreamedContent(assistantText);
+                }
+              } catch {
+                // Ignore partial JSON parsing errors
+              }
+            }
+          }
+        }
+        
         const assistantMessage: ChatMessage = {
           id: `msg-${Math.random().toString(36).substr(2, 9)}`,
           role: 'assistant',
-          content: responseText,
+          content: assistantText,
           timestamp: new Date().toISOString(),
         };
         setMessages((prev) => [...prev, assistantMessage]);
         setStreamedContent('');
+        setIsStreaming(false);
+      } else {
+        throw new Error('No stream reader');
       }
-    );
+    } catch (err) {
+      console.warn('[AEGIS Co-Pilot] Real AI streaming failed. Falling back to local simulated response.', err);
+      
+      // Fallback local simulated response
+      const isIncidentQuery = text.toLowerCase().includes('incident') || text.toLowerCase().includes('emergency') || text.toLowerCase().includes('medical');
+      const isCrowdQuery = text.toLowerCase().includes('density') || text.toLowerCase().includes('crowd') || text.toLowerCase().includes('concourse');
+      
+      let responseText = "I'm analyzing the telemetry feed. Please clarify which gate or seating sector you'd like me to query.";
+      if (isIncidentQuery) {
+        responseText = "[AI SECURE MONITOR] I am analyzing active emergency incident logs. For Medical dispatches, I recommend routing responders through vip corridors. For security dispatches, check Section 104 camera feeds.";
+      } else if (isCrowdQuery) {
+        responseText = "[AI CROWD ASSISTANT] Concourse density is currently at 88% near South concession stalls. Recommend triggering overflow signage immediately to divert traffic toward East Stands.";
+      }
+
+      streamText(
+        responseText,
+        (chunk) => {
+          setStreamedContent(chunk);
+        },
+        () => {
+          const assistantMessage: ChatMessage = {
+            id: `msg-${Math.random().toString(36).substr(2, 9)}`,
+            role: 'assistant',
+            content: responseText,
+            timestamp: new Date().toISOString(),
+          };
+          setMessages((prev) => [...prev, assistantMessage]);
+          setStreamedContent('');
+        }
+      );
+    }
   };
 
-  const getIncidentRecommendationStream = (
+  const getIncidentRecommendationStream = async (
     incident: EmergencyIncident,
     onChunk: (text: string) => void,
     onDone: () => void
   ) => {
-    const text = getRecommendationTemplate(incident);
-    streamText(text, onChunk, onDone);
+    try {
+      const response = await fetch('/api/copilot', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [
+            { 
+              role: 'user', 
+              content: `Generate an operational plan for the following active incident:\nCategory: ${incident.category}\nLocation: ${incident.location}\nDescription: ${incident.description}\nSeverity: ${incident.severity}` 
+            }
+          ],
+          telemetry: {
+            zones: useEventStore.getState().zones,
+            alerts: useEventStore.getState().alerts,
+            incidents: useEventStore.getState().incidents,
+            tasks: useEventStore.getState().tasks,
+            routes: useEventStore.getState().routes,
+          },
+        }),
+      });
+
+      if (!response.ok) throw new Error('API error');
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let assistantText = '';
+
+      if (reader) {
+        setIsStreaming(true);
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n');
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const dataStr = line.slice(6).trim();
+              if (dataStr === '[DONE]') continue;
+              try {
+                const data = JSON.parse(dataStr);
+                const content = data.choices?.[0]?.delta?.content || data.delta?.text || '';
+                if (content) {
+                  assistantText += content;
+                  onChunk(assistantText);
+                }
+              } catch {
+                // Ignore parsing errors
+              }
+            }
+          }
+        }
+        setIsStreaming(false);
+        onDone();
+      } else {
+        throw new Error('No reader');
+      }
+    } catch (err) {
+      console.warn('[AEGIS Co-Pilot] Real incident recommendation streaming failed. Falling back to local template.', err);
+      // Fallback local simulated response
+      const text = getRecommendationTemplate(incident);
+      streamText(text, onChunk, onDone);
+    }
   };
 
   return {

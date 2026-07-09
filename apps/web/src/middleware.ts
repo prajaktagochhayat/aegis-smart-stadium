@@ -123,5 +123,6 @@ export const config = {
     '/security/:path*',
     '/medical/:path*',
     '/admin/:path*',
+    '/api/:path*',
   ],
 };
