@@ -1,12 +1,14 @@
 import React from 'react';
-import { describe, it, expect, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { useAuth } from '../hooks/useAuth';
 import { SignInForm } from '../components/auth/SignInForm';
 import { SignUpForm } from '../components/auth/SignUpForm';
 import { MfaVerify } from '../components/auth/MfaVerify';
 import { middleware } from '../middleware';
 import { NextRequest } from 'next/server';
+import * as supabaseLib from '../lib/supabase';
+import { supabase } from '../lib/supabase';
 
 // Mock browser global document cookie
 let mockCookies = '';
@@ -40,6 +42,45 @@ describe('Authentication & Authorization Tests', () => {
       expect(signInSuccess).toBe(true);
       expect(useAuth.getState().user?.email).toBe('test@stadium.org');
       expect(useAuth.getState().user?.role).toBe('Organizer');
+    });
+
+    it('should respect NEXT_PUBLIC_DEMO_MODE environment gating', () => {
+      const originalDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE;
+      try {
+        process.env.NEXT_PUBLIC_DEMO_MODE = 'true';
+        expect(supabaseLib.shouldUseMockAuth()).toBe(true);
+      } finally {
+        process.env.NEXT_PUBLIC_DEMO_MODE = originalDemoMode;
+      }
+    });
+
+    it('should fall back to guest mode if Supabase session resolution hangs', async () => {
+      vi.useFakeTimers();
+      
+      // Spy on shouldUseMockAuth to return false, forcing use of Supabase auth initialization
+      const shouldMockSpy = vi.spyOn(supabaseLib, 'shouldUseMockAuth').mockReturnValue(false);
+      
+      const getSessionSpy = vi.spyOn(supabase.auth, 'getSession').mockImplementation(() => {
+        return new Promise(() => {}); // never resolves
+      });
+      
+      try {
+        const unsubscribe = useAuth.getState().initialize();
+        expect(useAuth.getState().isLoading).toBe(true);
+        
+        act(() => {
+          vi.advanceTimersByTime(2500);
+        });
+        
+        expect(useAuth.getState().isLoading).toBe(false);
+        expect(useAuth.getState().user).toBeNull();
+        
+        unsubscribe();
+      } finally {
+        getSessionSpy.mockRestore();
+        shouldMockSpy.mockRestore();
+        vi.useRealTimers();
+      }
     });
   });
 

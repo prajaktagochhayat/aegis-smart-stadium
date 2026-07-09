@@ -23,9 +23,15 @@ export function CustomCursor() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true);
     
+    // Check if device supports hover/touch, or if user prefers reduced motion or high contrast
     const touchCheck = window.matchMedia('(hover: none)').matches || 'ontouchstart' in window;
-    setIsTouchDevice(touchCheck);
-    if (touchCheck) return;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const highContrast = window.matchMedia('(prefers-contrast: more)').matches;
+
+    if (touchCheck || reducedMotion || highContrast) {
+      setIsTouchDevice(true);
+      return;
+    }
 
     const moveCursor = (e: MouseEvent) => {
       cursorX.set(e.clientX);
