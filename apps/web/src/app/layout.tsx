@@ -17,7 +17,7 @@ const spaceGrotesk = Space_Grotesk({
   weight: ["400", "500", "600", "700"],
 });
 
-import { BackgroundFootballs3D } from '@/components/dashboard/BackgroundFootballs3D';
+
 
 export const metadata: Metadata = {
   title: "AEGIS StadiumOS | Smart Stadium Command Center",
@@ -42,7 +42,6 @@ export default function RootLayout({
         <ThemeProvider>
           {/* Layered Animated Background & 3D Footballs */}
           <div className="mesh-gradient-bg" />
-          <BackgroundFootballs3D />
           
           <CustomCursor />
           <ToastContainer />

@@ -16,6 +16,7 @@ function RealisticSoccerBall({ rotationSpeed = 0.005 }: RealisticSoccerBallProps
 
   // Slow continuous rotation and subtle floating float
   useFrame((state) => {
+    if (typeof document !== 'undefined' && document.hidden) return;
     if (ballGroupRef.current) {
       ballGroupRef.current.rotation.y += rotationSpeed;
       ballGroupRef.current.rotation.x += rotationSpeed * 0.35;
@@ -72,6 +73,16 @@ function RealisticSoccerBall({ rotationSpeed = 0.005 }: RealisticSoccerBallProps
 
 export function BackgroundFootballs3D() {
   const { isDark } = useTheme();
+  const [shouldRender, setShouldRender] = React.useState(false);
+
+  React.useEffect(() => {
+    const timeout = setTimeout(() => {
+      setShouldRender(true);
+    }, 800);
+    return () => clearTimeout(timeout);
+  }, []);
+
+  if (!shouldRender) return null;
 
   return (
     <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none">

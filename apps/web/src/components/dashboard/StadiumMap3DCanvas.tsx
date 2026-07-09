@@ -42,6 +42,7 @@ function CurvedStand({
   const [hovered, setHovered] = useState(false);
 
   useFrame(() => {
+    if (typeof document !== 'undefined' && document.hidden) return;
     if (groupRef.current) {
       const scale = isSelected ? 1.05 : hovered ? 1.025 : 1.0;
       groupRef.current.scale.lerp(new THREE.Vector3(scale, scale, scale), 0.15);
@@ -129,6 +130,7 @@ function LedRibbonBoard({ isDark }: { isDark: boolean }) {
   const ribbonRef = useRef<THREE.Mesh>(null);
   
   useFrame((state) => {
+    if (typeof document !== 'undefined' && document.hidden) return;
     if (ribbonRef.current) {
       ribbonRef.current.rotation.y = state.clock.getElapsedTime() * 0.05;
       
@@ -158,6 +160,7 @@ function RoofCanopy({ isDark }: { isDark: boolean }) {
   const canopyRef = useRef<THREE.Mesh>(null);
   
   useFrame((state) => {
+    if (typeof document !== 'undefined' && document.hidden) return;
     if (canopyRef.current) {
       const time = state.clock.getElapsedTime();
       if (canopyRef.current.material instanceof THREE.MeshStandardMaterial) {
@@ -274,6 +277,7 @@ function SpectatorFlow({ isDark }: { isDark: boolean }) {
   }, []);
 
   useFrame(() => {
+    if (typeof document !== 'undefined' && document.hidden) return;
     if (!meshRef.current || particles.current.length === 0) return;
 
     const gates = [

@@ -18,6 +18,12 @@ import { Dialog } from '@/components/ui/Dialog';
 import { UserProfile } from '@/components/auth/UserProfile';
 import { WelcomeHub } from '@/components/dashboard/WelcomeHub';
 import { Loader2 } from 'lucide-react';
+import dynamic from 'next/dynamic';
+
+const BackgroundFootballs3D = dynamic(
+  () => import('@/components/dashboard/BackgroundFootballs3D').then((mod) => mod.BackgroundFootballs3D),
+  { ssr: false }
+);
 
 export default function HomePage() {
   const { user, isLoading, initialize } = useAuth();
@@ -91,6 +97,7 @@ export default function HomePage() {
 
   return (
     <div className="flex-1 flex flex-col min-h-screen pb-12">
+      <BackgroundFootballs3D />
       {/* Global Navigation Header */}
       <Navbar
         onOpenProfile={() => setIsProfileOpen(true)}
